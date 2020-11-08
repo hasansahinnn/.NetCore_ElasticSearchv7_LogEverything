@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ElasticSearch</name>
+    </assembly>
+    <members>
+        <member name="M:ElasticSearch.Controllers.TestController.GetToken">
+            <summary>
+                Get Jwt Token for User ID:5
+            </summary>
+        </member>
+        <member name="M:ElasticSearch.Controllers.TestController.Get">
+            <summary>
+                Get Products
+            </summary>
+        </member>
+        <member name="M:ElasticSearch.ElasticSearchManager.ElasticSearchManager`1.CheckExistsAndInsert(ElasticSearch.ElasticSearchManager.IndexType,`0)">
+            <summary>
+                Save Log
+            </summary>
+        </member>
+    </members>
+</doc>
