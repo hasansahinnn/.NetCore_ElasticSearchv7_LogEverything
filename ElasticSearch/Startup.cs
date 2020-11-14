@@ -50,7 +50,7 @@ namespace ElasticSearch
             services.AddDbContext<ProductContext>(opt => opt.UseInMemoryDatabase("ProductContext")); // Memory Db
 
             // ElasticSearch
-            services.AddElasticServices(Configuration);
+            services.AddElasticServices();
 
 
             //Jwt Auth
@@ -145,7 +145,7 @@ namespace ElasticSearch
             });
 
             // Elastic Error Logs
-            app.AddElasticErrorHandler(Configuration);
+            app.AddElasticErrorHandler();
 
 
             app.UseEndpoints(endpoints =>

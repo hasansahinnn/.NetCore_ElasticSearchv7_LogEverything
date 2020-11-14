@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ElasticSearchLibrary.ElasticSearchCore.Interfaces;
+using ElasticSearchLibrary.ElasticSearchCore.LibraryConfiguration;
 using ElasticSearchLibrary.Loggers.LogModels;
 using Microsoft.Extensions.Configuration;
 using Nest;
@@ -22,101 +23,142 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         }
 
 
+        #region Create Process
+
+        public async Task<IBulkAliasResponse> CreateIndexAsync(string aliasName,string indexName) 
+        {
+            var exis = await elasticClient.IndexExistsAsync(indexName);
+           
+            if (exis.Exists)
+                return new BulkAliasResponse();
+            var newName = indexName + DateTime.Now.Ticks;
+            var result = await elasticClient
+                .CreateIndexAsync(newName,
+                    ss =>
+                        ss.Index(newName)
+                            .Settings(
+                                o => o.NumberOfShards(4).NumberOfReplicas(2).Setting("max_result_window", int.MaxValue)
+                                         .Analysis(a => a
+                        .TokenFilters(tkf => tkf.AsciiFolding("my_ascii_folding", af => af.PreserveOriginal(true)))
+                        .Analyzers(aa => aa
+                        .Custom("turkish_analyzer", ca => ca
+                         .Filters("lowercase", "my_ascii_folding")
+                         .Tokenizer("standard")))))
+            );
+            if (result.Acknowledged)
+            {
+                return await elasticClient.AliasAsync(al => al.Add(add => add.Index(newName).Alias(aliasName)));
+            }
+            throw new Exception($"Create Index {indexName} failed : :" + result.ServerError.Error.Reason);
+        }
+
+        public async Task<IBulkAliasResponse> CreateIndexAndAliasAsync(string indexName)
+        {
+            var exis = await elasticClient.IndexExistsAsync(indexName);
+
+            if (exis.Exists)
+                return new BulkAliasResponse();
+            var newName = indexName + DateTime.Now.Ticks;
+            var result = await elasticClient
+                .CreateIndexAsync(newName,
+                    ss =>
+                        ss.Index(newName)
+                            .Settings(
+                                o => o.NumberOfShards(4).NumberOfReplicas(2).Setting("max_result_window", int.MaxValue)
+                                         .Analysis(a => a
+                        .TokenFilters(tkf => tkf.AsciiFolding("my_ascii_folding", af => af.PreserveOriginal(true)))
+                        .Analyzers(aa => aa
+                        .Custom("turkish_analyzer", ca => ca
+                         .Filters("lowercase", "my_ascii_folding")
+                         .Tokenizer("standard")))))
+            );
+            if (result.Acknowledged)
+            {
+                return await elasticClient.AliasAsync(al => al.Add(add => add.Index(newName).Alias(indexName)));
+            }
+            throw new Exception($"Create Index {indexName} failed : :" + result.ServerError.Error.Reason);
+        }
+  
+        public Task<IBulkAliasResponse> CreateAliasAsync(string aliasName,string? IndexName)
+        {
+           return elasticClient.AliasAsync(x => x.Add(new AliasAddAction() { Add = new AliasAddOperation() { Alias = aliasName, Index = IndexName } }));
+        }
+        #endregion
+
 
         #region Insert Process
 
         /// <summary>
         ///     Log Insert Function with String IndexType
         /// </summary>
-        public Task CheckExistsAndInsert<T>(IndexType IndexType, T logs) where T : class
-        {
+        public async Task<IIndexResponse> CheckExistsAndInsert<T>(IndexType IndexType, T logs) where T : class
+        { 
             string indexName = IndexType.ToString();
-            if (!elasticClient.IndexExists(indexName).Exists)
-            {
-                var newIndexName = indexName + System.DateTime.Now.Ticks;
-                var indexSettings = new IndexSettings();
-                indexSettings.NumberOfReplicas = 2; 
-                indexSettings.NumberOfShards = 3;
-                /*
-                 * By default, Elasticsearch creates 1 primary shard and 1 replica for each index. 
-                 * Allocating multiple shards and replicas is the essence of the design for distributed search capability, providing for high availability and quick access in searches against the documents within an index. 
-                 * The main difference between a primary and a replica shard is that only the primary shard can accept indexing requests. 
-                 * Both replica and primary shards can serve querying requests.
-                */
-                var createIndexDescriptor = new CreateIndexDescriptor(newIndexName)
-                    .Mappings(ms => ms.Map<T>(m => m.AutoMap()))
-                    .InitializeUsing(new IndexState() { Settings = indexSettings })
-                    .Aliases(a => a.Alias(indexName));
-
-                var response = elasticClient.CreateIndex(createIndexDescriptor);
-            }
-            return elasticClient.IndexAsync(logs, idx => idx.Index(indexName));
+            return await CheckExistsAndInsert<T>(indexName,logs);
         }
 
         /// <summary>
         ///     Log Insert Function with String Index Name
         /// </summary>
-        public Task CheckExistsAndInsert<T>(string indexName, T logs) where T : class
+        public async Task<IIndexResponse> CheckExistsAndInsert<T>(string indexName, T logs) where T : class
         {
             if (!elasticClient.IndexExists(indexName).Exists)
             {
-                var newIndexName = indexName + System.DateTime.Now.Ticks;
-                var indexSettings = new IndexSettings();
-                indexSettings.NumberOfReplicas = 2;
-                indexSettings.NumberOfShards = 3;
-                var createIndexDescriptor = new CreateIndexDescriptor(newIndexName)
-                    .Mappings(ms => ms.Map<T>(m => m.AutoMap()))
-                    .InitializeUsing(new IndexState() { Settings = indexSettings })
-                    .Aliases(a => a.Alias(indexName));
-
-                var response = elasticClient.CreateIndex(createIndexDescriptor);
+               await CreateIndexAndAliasAsync(indexName);
             }
-            return elasticClient.IndexAsync(logs, idx => idx.Index(indexName));
+            return await elasticClient.IndexAsync<T>(logs, idx => idx.Index(indexName));
         }
 
         #endregion
 
 
-        #region Clear Process
+        #region Clear Data Process
 
         /// <summary>
         ///     Clear Logs  with IndexType
         /// </summary>
-        public async Task ClearIndexData<T>(IndexType IndexType, T logs) where T : class, new()
+        public Task<IDeleteByQueryResponse> ClearIndexData(IndexType IndexType)
         {
             string indexName = IndexType.ToString();
-            await DeleteIndex(indexName);
-            await CheckExistsAndInsert<T>(indexName, new T());
+            return ClearIndexData(indexName);
         }
 
         /// <summary>
-        ///     Clear Logs  with string
+        ///     Clear Index Logs  with string
         /// </summary>
-        public async Task ClearIndexData<T>(string indexName,T logs) where T : class,new()
+        public Task<IDeleteByQueryResponse> ClearIndexData(string indexName) 
         {
-            await DeleteIndex(indexName);
-            await CheckExistsAndInsert<T>(indexName,new T());
+            DeleteByQueryRequest r = new DeleteByQueryRequest(new IndexName() { Name = indexName });
+            r.QueryOnQueryString = "*";
+            return elasticClient.DeleteByQueryAsync(r);
         }
 
         #endregion
 
 
         #region Delete Process
+
         /// <summary>
         /// Delete Index
         /// </summary>
-        public Task DeleteIndex(string indexName) 
+        public  Task<IDeleteIndexResponse> DeleteIndex(string indexName) 
         {
             return elasticClient.DeleteIndexAsync(indexName);
         }
+
         /// <summary>
-        /// Delete Index And Create Again
+        ///   Delete Alias. If you want to delete Indexs too set Delete paramater true. 
         /// </summary>
-        public async Task ReIndex<T>(string indexName, T logs) where T : class, new()
+        public Task<IBulkAliasResponse> DeleteAlias(string aliasName,bool DeleteAllIndexs)
         {
-            await DeleteIndex(indexName);
-            await CheckExistsAndInsert<T>(indexName, new T());
+            var exist = elasticClient.AliasExists(new AliasExistsRequest(aliasName.ToIndices())).Exists;
+            if (!exist) return null;
+            if (DeleteAllIndexs)
+                foreach (var item in GetAllIndexByAlias(aliasName).Result)
+                    DeleteIndex(item);
+            return elasticClient.AliasAsync(a => a.Remove(t => t.Alias(aliasName).Index("*")));
         }
+
 
         #endregion
 
@@ -129,7 +171,7 @@ namespace ElasticSearchLibrary.ElasticSearchCore
             throw new NotImplementedException();
         }
 
-        public  IReadOnlyCollection<ErrorLog> SearchChangeLogs(int? userId, int? errorCode, DateTime? beginDate, DateTime? endDate, string className = "", ChangeState operation = ChangeState.Updated, int? page = 0, int? rowCount = 10, IndexType indexName = IndexType.change_log, string indexNameStr = "")
+        public  IReadOnlyCollection<ErrorLog> SearchChangeLogs(int? userId, int? errorCode, DateTime? beginDate, DateTime? endDate, string className = "", ChangeState operation = ChangeState.Updated, int? page = 0, int? rowCount = 10, IndexType indexName = IndexType.entity_log, string indexNameStr = "")
         {
             throw new NotImplementedException();
         }
@@ -143,12 +185,56 @@ namespace ElasticSearchLibrary.ElasticSearchCore
 
 
 
-    }
-    public static class ElasticManagerExtension
-    {
-        public static IElasticSearchManager GetElasticManager(this IConfiguration configuration)
+        #region Get Process
+
+        /// <summary>
+        ///     Get Alias Definition using Index Name
+        /// </summary>
+        public async Task<IEnumerable<AliasDefinition>> GetAliasByIndex(string indexName)
         {
-            return configuration.Get<IElasticSearchManager>();
+            var result = elasticClient.GetAliasesPointingToIndex(indexName);
+            return result;
         }
+
+        /// <summary>
+        ///     Get All Index Names using AliasName
+        /// </summary>
+        public async Task<IEnumerable<string>> GetAllIndexByAlias(string aliasName)
+        {
+            var result = elasticClient.GetIndicesPointingToAlias(aliasName);
+            return result;
+        }
+
+
+        /// <summary>
+        /// Move Documents to New Index 
+        /// </summary>
+        public Task<IReindexOnServerResponse> ReIndex(string sourceIndexName, string destinationIndexName)
+        {
+            var reindexResponse = elasticClient.ReindexOnServerAsync(r => r
+                         .Source(s => s
+                             .Index(sourceIndexName)
+                         )
+                         .Destination(d => d
+                             .Index(destinationIndexName)
+                         )
+                         .WaitForCompletion()
+                     );
+            return reindexResponse;
+        }
+
+
+        #endregion
+
     }
+
+
+    /*
+        
+     Alias Exist Check: elasticClient.GetAlias(a => a.Name(indexName)).Indices.Count   
+        
+    */
+
+
+
 }

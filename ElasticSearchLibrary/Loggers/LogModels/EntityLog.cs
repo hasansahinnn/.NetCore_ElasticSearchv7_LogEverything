@@ -1,14 +1,16 @@
-﻿using System;
+﻿using ElasticSearchLibrary.Loggers.LogModels.Abstract;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace ElasticSearch.ElasticSearchManager
+namespace ElasticSearchLibrary.Loggers.LogModels
 {
-    public class ChangeLog
+    public class EntityLog : IElasticModel
     {
-        public ChangeLog(int? userId,string entityName, int primaryKeyValue,DateTime date, ChangeState state)
+        public EntityLog() { }
+        public EntityLog(int? userId,string entityName, int primaryKeyValue,DateTime date, ChangeState state)
         {
             this.UserId = userId;
             this.EntityName = entityName;

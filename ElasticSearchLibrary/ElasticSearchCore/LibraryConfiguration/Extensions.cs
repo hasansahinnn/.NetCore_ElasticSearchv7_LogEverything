@@ -9,6 +9,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Nest;
 
 namespace ElasticSearchLibrary.ElasticSearchCore.LibraryConfiguration
 {
@@ -34,7 +35,7 @@ namespace ElasticSearchLibrary.ElasticSearchCore.LibraryConfiguration
             var httpType = context.HttpContext.Request.Method;
             return (controllerName, actionName, httpType);
         }
-        public static string GetDisplayName(this IProperty props) // Get 'Display Name' from Model Property
+        public static string GetDisplayName(this Microsoft.EntityFrameworkCore.Metadata.IProperty props) // Get 'Display Name' from Model Property
         {
             var prop = props.PropertyInfo;
             if (prop.CustomAttributes == null || prop.CustomAttributes.Count() == 0)
@@ -50,5 +51,8 @@ namespace ElasticSearchLibrary.ElasticSearchCore.LibraryConfiguration
 
         public static bool CheckAttributeExist<T>(this Type type) => type.GetCustomAttributes(false).FirstOrDefault(x => x.GetType() == typeof(T)) != null;
         public static bool CheckAttributeExist<T>(this PropertyInfo type) => type.GetCustomAttributes(false).FirstOrDefault(x => x.GetType() == typeof(T)) != null;
+
+
+        public static Indices ToIndices(this string text) => (Indices)text;
     }
 }

@@ -8,7 +8,7 @@ namespace ElasticSearchLibrary.ElasticSearchCore
     public enum IndexType
     {
         activity_log = 1,
-        change_log = 2,
+        entity_log = 2,
         error_log = 3,
     }
 }

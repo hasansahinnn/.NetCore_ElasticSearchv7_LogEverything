@@ -18,26 +18,25 @@ namespace ElasticSearchLibrary.ElasticSearchCore.LibraryConfiguration
 {
     public static class ElasticServiceCollection
     {
-        //public static IServiceCollection AddDomainServices(this IServiceCollection services, IConfiguration configuration)
-        public static IServiceCollection AddElasticServices(this IServiceCollection services, IConfiguration Configuration)
+        public static IServiceCollection AddElasticServices(this IServiceCollection services)
         {
-            services.AddScoped(typeof(IElasticConnectionSettings), typeof(ElasticConnectionSettings));
-            services.AddScoped(typeof(IElasticClientProvider), typeof(ElasticClientProvider));
-            services.AddScoped(typeof(IElasticSearchManager), typeof(ElasticSearchManager));
-            services.AddScoped(typeof(IDatabaseLogger), typeof(DatabaseLogger));
-            var serviceProvider = services.BuildServiceProvider();
-            var service = serviceProvider.GetService<IElasticSearchManager>();
+            services.AddSingleton(typeof(IElasticConnectionSettings), typeof(ElasticConnectionSettings));
+            services.AddSingleton(typeof(IElasticClientProvider), typeof(ElasticClientProvider));
+            services.AddSingleton(typeof(IElasticSearchManager), typeof(ElasticSearchManager));
+            services.AddSingleton(typeof(IDatabaseLogger), typeof(DatabaseLogger));
             return services;
         }
 
-        public static IApplicationBuilder AddElasticErrorHandler(this IApplicationBuilder app,IConfiguration configuration)
+        public static IApplicationBuilder AddElasticErrorHandler(this IApplicationBuilder app)
         {
-           
-            return app.UseExceptionHandler(a => a.Run(async context => 
+            app.UseExceptionHandler(a => a.Run(async context =>
             {
+                IElasticSearchManager _elasticSearchService;
+                using (var scope = app.ApplicationServices.CreateScope())
+                {
+                    _elasticSearchService = scope.ServiceProvider.GetRequiredService<IElasticSearchManager>();
+                }
                 var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-
-            var _elasticSearchService = app.ApplicationServices.GetService<ElasticSearchManager>();
                 ErrorLog error = new ErrorLog
                 {
                     UserId = context.GetAuthUser(),
@@ -58,6 +57,7 @@ namespace ElasticSearchLibrary.ElasticSearchCore.LibraryConfiguration
                 var result = JsonConvert.SerializeObject(new { error = exceptionHandlerPathFeature.Error.Message });
                 await context.Response.WriteAsync(result);
             }));
+            return app;
         }
     }
 }

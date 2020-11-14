@@ -35,7 +35,7 @@ namespace ElasticSearchLibrary.Loggers.DBEntityLogger
                 var entityName = change.Entity.GetType().Name; // Table name
                 var PrimaryKey = change.OriginalValues.Properties.FirstOrDefault(prop => prop.IsPrimaryKey() == true).Name; //Table Primary Key
 
-                ChangeLog log = new ChangeLog(userId, entityName, change.OriginalValues[PrimaryKey].ToInt(), now, ChangeState.Updated);
+                EntityLog log = new EntityLog(userId, entityName, change.OriginalValues[PrimaryKey].ToInt(), now, ChangeState.Updated);
                 foreach (IProperty prop in change.OriginalValues.Properties) // Updated Props
                 {
                     bool LogPropState = prop.PropertyInfo.CheckAttributeExist<LogPropAttribute>(); // Check LogProp Attribute
@@ -49,7 +49,7 @@ namespace ElasticSearchLibrary.Loggers.DBEntityLogger
                         log.ChangedValues.Add(new ChangedValues(prop.GetDisplayName(), originalValue, currentValue));
                     }
                 }
-                elasticSearchService.CheckExistsAndInsert<ChangeLog>(IndexType.change_log, log); // Send to Elastic
+                elasticSearchService.CheckExistsAndInsert<EntityLog>(IndexType.entity_log, log); // Send to Elastic
             }
 
             foreach (var deleted in deletedEntities) // Deleted Data
@@ -58,8 +58,8 @@ namespace ElasticSearchLibrary.Loggers.DBEntityLogger
                 bool LogModelState = deleted.Entity.GetType().CheckAttributeExist<LogModelAttribute>(); // Check LogModel Attribute
                 if (!LogModelState) continue;
                 var PrimaryKey = deleted.OriginalValues.Properties.FirstOrDefault(prop => prop.IsPrimaryKey() == true).Name; //Table Primary Key
-                ChangeLog log = new ChangeLog(userId, entityName, deleted.OriginalValues[PrimaryKey].ToInt(), now, ChangeState.Deleted);
-                elasticSearchService.CheckExistsAndInsert<ChangeLog>(IndexType.change_log, log); // Send to Elastic
+                EntityLog log = new EntityLog(userId, entityName, deleted.OriginalValues[PrimaryKey].ToInt(), now, ChangeState.Deleted);
+                elasticSearchService.CheckExistsAndInsert<EntityLog>(IndexType.entity_log, log); // Send to Elastic
             }
         }
     }

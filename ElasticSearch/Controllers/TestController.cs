@@ -80,7 +80,7 @@ namespace ElasticSearch.Controllers
         [LogEndpoint]
         [AllowAnonymous]
         [HttpGet]
-        [SwaggerOperation(Tags = new[] { "Error" }, Summary = "Get Error. ")]
+        [SwaggerOperation(Tags = new[] { "Error" }, Summary = "Error Log Test ")]
         public async Task<IActionResult> GetError()
         {
             throw new Exception("test error");
