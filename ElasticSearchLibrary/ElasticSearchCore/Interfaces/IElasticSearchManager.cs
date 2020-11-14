@@ -1,4 +1,5 @@
 ﻿using ElasticSearchLibrary.Loggers.LogModels;
+using ElasticSearchLibrary.Loggers.SearchModels;
 using Nest;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,8 @@ namespace ElasticSearchLibrary.ElasticSearchCore
 {
     public interface IElasticSearchManager
     {
+
+
         /// <summary>
         ///     Create New Index merged with alias
         /// </summary>
@@ -22,10 +25,7 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         /// </summary>
         Task<IBulkAliasResponse> CreateAliasAsync(string aliasName, string? IndexName);
 
-        /// <summary>
-        ///     Get Alias Name
-        /// </summary>
-        Task<IEnumerable<AliasDefinition>> GetAliasByIndex(string indexName);
+
 
 
         /// <summary>
@@ -36,6 +36,9 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         ///     Log Insert Function with String Index Name
         /// </summary>
         public Task<IIndexResponse> CheckExistsAndInsert<T>(string IndexName, T logs) where T : class;
+
+
+
         /// <summary>
         ///     Clear Logs  with IndexType
         /// </summary>
@@ -44,6 +47,11 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         ///     Clear Logs  with string
         /// </summary>
         public Task<IDeleteByQueryResponse> ClearIndexData(string indexName);
+
+
+
+
+
         /// <summary>
         /// Delete Index
         /// </summary>
@@ -52,18 +60,32 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         /// Delete Alias. If you want to delete Indexs too set Delete paramater true. 
         /// </summary>
         public Task<IBulkAliasResponse> DeleteAlias(string aliasName,bool DeleteAllIndexs);
+
+
+
+
+        /// <summary>
+        ///     Get Alias Name using IndexName
+        /// </summary>
+        Task<IEnumerable<AliasDefinition>> GetAliasByIndex(string indexName);
+
+        /// <summary>
+        ///     Get All Index using Alias Name
+        /// </summary>
+        Task<IEnumerable<string>> GetAllIndexByAlias(string aliasName);
+
+
         /// <summary>
         /// Delete Index And Create Again
         /// </summary>
         public Task<IReindexOnServerResponse> ReIndex(string sourceIndexName, string destinationIndexName);
 
-        public IReadOnlyCollection<ActivityLog> SearchActivityLogs(int? userId, int? errorCode, DateTime? beginDate, DateTime? endDate, string controller = "", string action = "", string httpMethod="",
-            int? page = 0, int? rowCount = 10, IndexType indexName = IndexType.activity_log, string indexNameStr="");
 
-        public IReadOnlyCollection<ErrorLog> SearchErrorLogs(int? userId, int? errorCode, DateTime? beginDate, DateTime? endDate, string controller = "", string action = "",
-        string method="",int? page = 0, int? rowCount = 10, IndexType indexName = IndexType.error_log, string indexNameStr = "");
+        public Task<IReadOnlyCollection<ActivityLog>> SearchActivityLogs(ActivitySearchModel activityFilter);
 
-        public IReadOnlyCollection<ErrorLog> SearchChangeLogs(int? userId, int? errorCode, DateTime? beginDate, DateTime? endDate, string className = "", ChangeState operation = ChangeState.Updated,
-        int? page = 0, int? rowCount = 10, IndexType indexName = IndexType.entity_log, string indexNameStr = "");
+        public Task<IReadOnlyCollection<ErrorLog>> SearchErrorLogs(ErrorSearchModel errorFilter);
+
+        public Task<IReadOnlyCollection<EntityLog>> SearchEntityLogs(EntitySearchModel entityFilter);
+        public Task<IReadOnlyCollection<T>> SearchIndexLogs<T>(GlobalSearchModel globalFilter) where T : class;
     }
 }

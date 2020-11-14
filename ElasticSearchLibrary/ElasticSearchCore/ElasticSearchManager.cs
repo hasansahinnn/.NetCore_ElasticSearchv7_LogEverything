@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ElasticSearchLibrary.ElasticSearchCore.Interfaces;
 using ElasticSearchLibrary.ElasticSearchCore.LibraryConfiguration;
 using ElasticSearchLibrary.Loggers.LogModels;
+using ElasticSearchLibrary.Loggers.SearchModels;
 using Microsoft.Extensions.Configuration;
 using Nest;
 
@@ -163,28 +164,6 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         #endregion
 
 
-
-       #region Search Process
-
-        public IReadOnlyCollection<ActivityLog> SearchActivityLogs(int? userId, int? errorCode, DateTime? beginDate, DateTime? endDate, string controller = "", string action = "",string httpMethod="", int? page = 0, int? rowCount = 10, IndexType indexName = IndexType.activity_log,string indexNameStr = "")
-        {
-            throw new NotImplementedException();
-        }
-
-        public  IReadOnlyCollection<ErrorLog> SearchChangeLogs(int? userId, int? errorCode, DateTime? beginDate, DateTime? endDate, string className = "", ChangeState operation = ChangeState.Updated, int? page = 0, int? rowCount = 10, IndexType indexName = IndexType.entity_log, string indexNameStr = "")
-        {
-            throw new NotImplementedException();
-        }
-
-        public  IReadOnlyCollection<ErrorLog> SearchErrorLogs(int? userId, int? errorCode, DateTime? beginDate, DateTime? endDate, string controller = "", string action = "", string method = "", int? page = 0, int? rowCount = 10, IndexType indexName = IndexType.error_log, string indexNameStr = "")
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
-
-
-
         #region Get Process
 
         /// <summary>
@@ -226,15 +205,112 @@ namespace ElasticSearchLibrary.ElasticSearchCore
 
         #endregion
 
+
+        #region Search Process
+
+        public async Task<IReadOnlyCollection<ActivityLog>> SearchActivityLogs(ActivitySearchModel activityFilter)
+        {
+            activityFilter.BeginDate = activityFilter.BeginDate == null ? DateTime.Parse("01/01/1900") : activityFilter.BeginDate;
+            activityFilter.EndDate = activityFilter.EndDate == null ? DateTime.Now : activityFilter.EndDate;
+            var response = elasticClient.Search<ActivityLog>(s => s
+            .From(activityFilter.Page)
+            .Size(activityFilter.RowCount)
+            .Sort(ss => ss.Descending(p => p.DateCreated))
+            .Query(q => q
+                .Bool(b => b
+                    .Must(
+                        q => q.Term(t => t.UserId, activityFilter.UserId),
+                        q => q.Term(t => t.ControllerName.ToFilter(), activityFilter.ControllerName.ToFilter()),
+                        q => q.Term(t => t.ActionName.ToFilter(), activityFilter.ActionName.ToFilter()),
+                        q => q.Term(t => t.HttpType.ToFilter(), activityFilter.HttpType.ToFilter()),
+                        q => q.Term(t => t.IPAddress.ToFilter(), activityFilter.IPAddress.ToFilter()),
+                        q => q.Term(t => t.StatusCode, activityFilter.StatusCode),
+                         q => q.DateRange(r => r
+                        .Field(f => f.DateCreated)
+                        .GreaterThanOrEquals(DateMath.Anchored(((DateTime)activityFilter.BeginDate).AddDays(-1)))
+                        .LessThanOrEquals(DateMath.Anchored(((DateTime)activityFilter.EndDate).AddDays(1)))
+                        ))
+                     )
+                  )
+            .Index(IndexType.activity_log.ToString())
+            );
+            return response.Documents;
+        }
+
+        public async Task<IReadOnlyCollection<ErrorLog>> SearchErrorLogs(ErrorSearchModel errorFilter)
+        {
+            errorFilter.BeginDate = errorFilter.BeginDate == null ? DateTime.Parse("01/01/1900") : errorFilter.BeginDate;
+            errorFilter.EndDate = errorFilter.EndDate == null ? DateTime.Now : errorFilter.EndDate;
+            var response = elasticClient.Search<ErrorLog>(s => s
+            .From(errorFilter.Page)
+            .Size(errorFilter.RowCount)
+            .Sort(ss => ss.Descending(p => p.DateCreated))
+            .Query(q => q
+                .Bool(b => b
+                    .Must(
+                        q => q.Term(t => t.UserId, errorFilter.UserId),
+                        q => q.Term(t => t.Path.ToFilter(), errorFilter.Path.ToFilter()),
+                        q => q.Term(t => t.Method.ToFilter(), errorFilter.Method.ToFilter()),
+                        q => q.Term(t => t.StatusCode, errorFilter.StatusCode),
+                         q => q.DateRange(r => r
+                        .Field(f => f.DateCreated)
+                        .GreaterThanOrEquals(DateMath.Anchored(((DateTime)errorFilter.BeginDate).AddDays(-1)))
+                        .LessThanOrEquals(DateMath.Anchored(((DateTime)errorFilter.EndDate).AddDays(1)))
+                        ))
+                     )
+                  ).Take(1)
+            .Index(IndexType.error_log.ToString())
+            );
+            return response.Documents;
+        }
+
+        public async Task<IReadOnlyCollection<EntityLog>> SearchEntityLogs(EntitySearchModel entityFilter)
+        {
+            entityFilter.BeginDate = entityFilter.BeginDate == null ? DateTime.Parse("01/01/1900") : entityFilter.BeginDate;
+            entityFilter.EndDate = entityFilter.EndDate == null ? DateTime.Now : entityFilter.EndDate;
+            var response = elasticClient.Search<EntityLog>(s => s
+            .From(entityFilter.Page)
+            .Size(entityFilter.RowCount)
+            .Sort(ss => ss.Descending(p => p.DateChanged))
+            .Query(q => q
+                .Bool(b => b
+                    .Must(
+                        q => q.Term(t => t.UserId, entityFilter.UserId),
+                        q => q.Term(t => t.EntityName.ToFilter(), entityFilter.EntityName.ToFilter()),
+                        q => q.Term(t => t.PrimaryKeyValue, entityFilter.PrimaryKeyValue),
+                        q => q.Term(t => t.State, entityFilter.State),
+                         q => q.DateRange(r => r
+                        .Field(f => f.DateChanged)
+                        .GreaterThanOrEquals(DateMath.Anchored(((DateTime)entityFilter.BeginDate).AddDays(-1)))
+                        .LessThanOrEquals(DateMath.Anchored(((DateTime)entityFilter.EndDate).AddDays(1)))
+                        ))
+                     )
+                  )
+            .Index(IndexType.entity_log.ToString())
+            );
+            return response.Documents;
+        }
+
+        public async Task<IReadOnlyCollection<T>> SearchIndexLogs<T>(GlobalSearchModel globalFilter) where T: class
+        {
+            var response = elasticClient.Search<T>(s => s
+            .From(globalFilter.Page)
+            .Size(globalFilter.RowCount)
+            .Index(globalFilter.IndexName)
+            );
+            return response.Documents;
+        }
+
+
+        #endregion
+
+
+
+
     }
 
 
-    /*
-        
-     Alias Exist Check: elasticClient.GetAlias(a => a.Name(indexName)).Indices.Count   
-        
-    */
-
+   
 
 
 }

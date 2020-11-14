@@ -1,5 +1,6 @@
 ﻿using ElasticSearchLibrary.ElasticSearchCore;
 using ElasticSearchLibrary.Loggers.LogModels;
+using ElasticSearchLibrary.Loggers.SearchModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;
@@ -18,6 +19,9 @@ namespace ElasticSearchLibrary.Loggers
         {
             this.elasticSearchService = _elasticSearchService;
         }
+
+        #region Default Logs
+
         /// <summary>
         ///  Clear all Activity Logs 
         /// </summary>
@@ -60,6 +64,9 @@ namespace ElasticSearchLibrary.Loggers
         }
 
 
+        #endregion
+
+
         #region Get Endpoints
 
         /// <summary>
@@ -68,16 +75,27 @@ namespace ElasticSearchLibrary.Loggers
         [HttpGet]
         public async Task<IActionResult> GetAliasName(string indexName)
         {
-            var result = await elasticSearchService.GetAliasByIndex(indexName); // Use lowerCase Index Name
+            var result = await elasticSearchService.GetAliasByIndex(indexName); 
+            return Ok(result);
+        }
+
+        /// <summary>
+        ///   Get All Index using Alias Name
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetAllIndexByAlias(string aliasName)
+        {
+            var result = await elasticSearchService.GetAllIndexByAlias(aliasName); 
             return Ok(result);
         }
 
         #endregion
 
+
         #region Create Endpoints
 
         /// <summary>
-        ///     Create New Alias (Index Optional for merge alias to index)
+        ///     Create New Alias (Index Optional for merge alias to index)   // Use lowerCase Index Name
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> CreateAlias(string aliasName, string? IndexName)
@@ -89,9 +107,9 @@ namespace ElasticSearchLibrary.Loggers
         ///     Create Index 
         /// </summary>
         [HttpPost]
-        public async Task<IActionResult> CreateIndexAndAlias(string IndexName)
+        public async Task<IActionResult> CreateIndexAndAlias(string IndexName) 
         {
-            var result = await elasticSearchService.CreateIndexAndAliasAsync( IndexName);
+            var result = await elasticSearchService.CreateIndexAndAliasAsync( IndexName);  // Use lowerCase Index Name
             return Ok(result);
         }
         /// <summary>
@@ -105,6 +123,7 @@ namespace ElasticSearchLibrary.Loggers
         }
 
         #endregion
+
 
         #region Delete Endpoints
 
@@ -128,7 +147,72 @@ namespace ElasticSearchLibrary.Loggers
             return Ok(result);
         }
 
+
+        /// <summary>
+        ///     Delete Index Logged Data
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> ClearIndexData(string indexName)
+        {
+            var result = await elasticSearchService.ClearIndexData(indexName);
+            return Ok(result);
+        }
+
         #endregion
+
+
+        #region Insert Endpoints
+
+        /// <summary>
+        ///     Insert Log for your specific Models
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> InsertLogForModel(string indexName, ErrorLog logdata)
+        {
+            var result = await elasticSearchService.CheckExistsAndInsert<ErrorLog>(indexName, logdata); 
+            return Ok(result);
+        }
+
+        #endregion
+
+
+        #region SearchEndPoints
+
+        /// <summary>
+        ///     Search Activity Logs
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> SearchActivityLogs(ActivitySearchModel activityFilter)
+        {
+            var result = await elasticSearchService.SearchActivityLogs(activityFilter);
+            return Ok(result);
+        }
+
+        /// <summary>
+        ///     Search Activity Logs
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> SearchErrorLogs(ErrorSearchModel errorFilter)
+        {
+            var result = await elasticSearchService.SearchErrorLogs(errorFilter);
+            return Ok(result);
+        }
+
+        /// <summary>
+        ///     Search Activity Logs
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> SearchEntityLogs(EntitySearchModel entityFilter)
+        {
+            var result = await elasticSearchService.SearchEntityLogs(entityFilter);
+            return Ok(result);
+        }
+
+
+
+        #endregion
+
+
 
     }
 }
