@@ -14,10 +14,5 @@
                 Get Products
             </summary>
         </member>
-        <member name="M:ElasticSearch.ElasticSearchManager.ElasticSearchManager`1.CheckExistsAndInsert(ElasticSearch.ElasticSearchManager.IndexType,`0)">
-            <summary>
-                Save Log
-            </summary>
-        </member>
     </members>
 </doc>

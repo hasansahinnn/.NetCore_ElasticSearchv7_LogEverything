@@ -1,4 +1,4 @@
-﻿using ElasticSearch.ElasticSearchManager.LogAttributes.EntityAttributes;
+﻿using ElasticSearchLibrary.Loggers.LogAttributes.EntityAttributes;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ElasticSearch.Configuration;
-using ElasticSearch.ElasticSearchManager;
-using ElasticSearch.ElasticSearchManager.LogAttributes.FilterAttributes;
 using ElasticSearch.Models;
+using ElasticSearchLibrary.ElasticSearchCore;
+using ElasticSearchLibrary.Loggers.LogAttributes.FilterAttributes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -22,8 +22,11 @@ namespace ElasticSearch.Controllers
     public class TestController : Controller
     {
         private readonly ProductContext dbContext;
-        public TestController(ProductContext dbContext)
+        private IElasticSearchManager elasticSearchService;
+
+        public TestController(ProductContext dbContext, IElasticSearchManager _elasticSearchService)
         {
+            this.elasticSearchService = _elasticSearchService;
             this.dbContext = dbContext;
         }
         /// <summary>
@@ -40,7 +43,7 @@ namespace ElasticSearch.Controllers
         /// <summary>
         ///     Get Products
         /// </summary>
-        [NotLogEndpoint] // if LogAllEndPoints:true -> Use [NotLogAttribute] for remove logging to specific endpoints.
+        [NoLogEndpoint] // if LogAllEndPoints:true -> Use [NotLogAttribute] for remove logging to specific endpoints.
         [HttpGet]
         [SwaggerOperation(Tags = new[] { "CRUD" }, Summary = "Get All Products. (Authorized)")]
         public IActionResult Get()
@@ -82,5 +85,18 @@ namespace ElasticSearch.Controllers
         {
             throw new Exception("test error");
         }
+
+
+        [AllowAnonymous]
+        [HttpPost]
+        [SwaggerOperation(Tags = new[] { "SpecificLogTest" }, Summary = "Log Your Specific Models to Elastic.")]
+        public IActionResult SpecialLog()
+        {
+            MyTestModel testData = new MyTestModel(1, "Test");
+            elasticSearchService.CheckExistsAndInsert<MyTestModel>("test_model", testData); // Use lowerCase Index Name
+            return Ok(true);
+        }
+
+    
     }
 }

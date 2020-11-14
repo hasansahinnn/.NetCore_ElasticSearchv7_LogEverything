@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Elasticsearch.Net;
 using ElasticSearch.Configuration;
-using ElasticSearch.ElasticSearchManager;
 using ElasticSearch.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -29,6 +28,9 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.IO;
+using ElasticSearchLibrary.ElasticSearchCore;
+using ElasticSearchLibrary;
+using ElasticSearchLibrary.ElasticSearchCore.LibraryConfiguration;
 
 namespace ElasticSearch
 {
@@ -48,9 +50,7 @@ namespace ElasticSearch
             services.AddDbContext<ProductContext>(opt => opt.UseInMemoryDatabase("ProductContext")); // Memory Db
 
             // ElasticSearch
-            services.Configure<ElasticConnectionSettings>(Configuration.GetSection("ElasticConnectionSettings"));
-            services.AddTransient(typeof(IElasticSearchManager<>), typeof(ElasticSearchManager<>));
-            services.AddScoped<ElasticClientProvider>();
+            services.AddElasticServices(Configuration);
 
 
             //Jwt Auth
@@ -124,7 +124,7 @@ namespace ElasticSearch
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IElasticSearchManager<ErrorLog> _elasticSearchService)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -144,21 +144,8 @@ namespace ElasticSearch
                 c.RoutePrefix = "";
             });
 
-            app.UseExceptionHandler(a => a.Run(async context => // Error Logs
-            {
-                var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-               
-                ErrorLog error = new ErrorLog { 
-                    UserId = context.GetAuthUser(), 
-                    Path = exceptionHandlerPathFeature.Path, 
-                    Method = context.Request.Method, 
-                    ErrorMessage = exceptionHandlerPathFeature.Error.Message 
-                };
-                _elasticSearchService.CheckExistsAndInsert(IndexType.error_log, error); // Send to Elastic
-                var result = JsonConvert.SerializeObject(error);
-                context.Response.ContentType = "application/json";
-                await context.Response.WriteAsync(result);
-            }));
+            // Elastic Error Logs
+            app.AddElasticErrorHandler(Configuration);
 
 
             app.UseEndpoints(endpoints =>
