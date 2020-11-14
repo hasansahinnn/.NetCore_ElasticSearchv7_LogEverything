@@ -11,8 +11,8 @@ using Nest;
 
 namespace ElasticSearchLibrary.ElasticSearchCore
 {
-    
-    public class ElasticSearchManager:IElasticSearchManager
+
+    public class ElasticSearchManager : IElasticSearchManager
     {
         IElasticClientProvider elasticProvider;
         ElasticClient elasticClient;
@@ -26,15 +26,15 @@ namespace ElasticSearchLibrary.ElasticSearchCore
 
         #region Create Process
 
-        public async Task<IBulkAliasResponse> CreateIndexAsync(string aliasName,string indexName) 
+        public async Task<BulkAliasResponse> CreateIndexAsync(string aliasName, string indexName)
         {
-            var exis = await elasticClient.IndexExistsAsync(indexName);
-           
+            var exis = await elasticClient.Indices.ExistsAsync(indexName);
+
             if (exis.Exists)
                 return new BulkAliasResponse();
             var newName = indexName + DateTime.Now.Ticks;
-            var result = await elasticClient
-                .CreateIndexAsync(newName,
+            var result = await elasticClient.Indices
+                .CreateAsync(newName,
                     ss =>
                         ss.Index(newName)
                             .Settings(
@@ -48,20 +48,20 @@ namespace ElasticSearchLibrary.ElasticSearchCore
             );
             if (result.Acknowledged)
             {
-                return await elasticClient.AliasAsync(al => al.Add(add => add.Index(newName).Alias(aliasName)));
+                return await elasticClient.Indices.BulkAliasAsync(b => b.Add(new AliasAddAction() { Add = new AliasAddOperation() { Alias = aliasName, Index = newName } }));
             }
             throw new Exception($"Create Index {indexName} failed : :" + result.ServerError.Error.Reason);
         }
 
-        public async Task<IBulkAliasResponse> CreateIndexAndAliasAsync(string indexName)
+        public async Task<BulkAliasResponse> CreateIndexAndAliasAsync(string indexName)
         {
-            var exis = await elasticClient.IndexExistsAsync(indexName);
+            var exis = await elasticClient.Indices.ExistsAsync(indexName);
 
             if (exis.Exists)
                 return new BulkAliasResponse();
             var newName = indexName + DateTime.Now.Ticks;
-            var result = await elasticClient
-                .CreateIndexAsync(newName,
+            var result = await elasticClient.Indices
+                .CreateAsync(newName,
                     ss =>
                         ss.Index(newName)
                             .Settings(
@@ -75,14 +75,14 @@ namespace ElasticSearchLibrary.ElasticSearchCore
             );
             if (result.Acknowledged)
             {
-                return await elasticClient.AliasAsync(al => al.Add(add => add.Index(newName).Alias(indexName)));
+                return await elasticClient.Indices.BulkAliasAsync(b => b.Add(new AliasAddAction() { Add = new AliasAddOperation() { Alias = newName, Index = indexName } }));
             }
             throw new Exception($"Create Index {indexName} failed : :" + result.ServerError.Error.Reason);
         }
-  
-        public Task<IBulkAliasResponse> CreateAliasAsync(string aliasName,string? IndexName)
+
+        public Task<BulkAliasResponse> CreateAliasAsync(string aliasName, string? IndexName)
         {
-           return elasticClient.AliasAsync(x => x.Add(new AliasAddAction() { Add = new AliasAddOperation() { Alias = aliasName, Index = IndexName } }));
+            return elasticClient.Indices.BulkAliasAsync(b=>b.Add(new AliasAddAction() { Add=new AliasAddOperation() {Alias=aliasName,Index=IndexName } }));
         }
         #endregion
 
@@ -92,20 +92,20 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         /// <summary>
         ///     Log Insert Function with String IndexType
         /// </summary>
-        public async Task<IIndexResponse> CheckExistsAndInsert<T>(IndexType IndexType, T logs) where T : class
-        { 
+        public async Task<IndexResponse> CheckExistsAndInsert<T>(IndexType IndexType, T logs) where T : class
+        {
             string indexName = IndexType.ToString();
-            return await CheckExistsAndInsert<T>(indexName,logs);
+            return await CheckExistsAndInsert<T>(indexName, logs);
         }
 
         /// <summary>
         ///     Log Insert Function with String Index Name
         /// </summary>
-        public async Task<IIndexResponse> CheckExistsAndInsert<T>(string indexName, T logs) where T : class
+        public async Task<IndexResponse> CheckExistsAndInsert<T>(string indexName, T logs) where T : class
         {
-            if (!elasticClient.IndexExists(indexName).Exists)
+            if (!elasticClient.Indices.Exists(indexName).Exists)
             {
-               await CreateIndexAndAliasAsync(indexName);
+                await CreateIndexAndAliasAsync(indexName);
             }
             return await elasticClient.IndexAsync<T>(logs, idx => idx.Index(indexName));
         }
@@ -118,7 +118,7 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         /// <summary>
         ///     Clear Logs  with IndexType
         /// </summary>
-        public Task<IDeleteByQueryResponse> ClearIndexData(IndexType IndexType)
+        public Task<DeleteByQueryResponse> ClearIndexData(IndexType IndexType)
         {
             string indexName = IndexType.ToString();
             return ClearIndexData(indexName);
@@ -127,9 +127,9 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         /// <summary>
         ///     Clear Index Logs  with string
         /// </summary>
-        public Task<IDeleteByQueryResponse> ClearIndexData(string indexName) 
+        public Task<DeleteByQueryResponse> ClearIndexData(string indexName)
         {
-            DeleteByQueryRequest r = new DeleteByQueryRequest(new IndexName() { Name = indexName });
+            DeleteByQueryRequest r = new DeleteByQueryRequest(indexName);
             r.QueryOnQueryString = "*";
             return elasticClient.DeleteByQueryAsync(r);
         }
@@ -142,22 +142,22 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         /// <summary>
         /// Delete Index
         /// </summary>
-        public  Task<IDeleteIndexResponse> DeleteIndex(string indexName) 
+        public Task<DeleteIndexResponse> DeleteIndex(string indexName)
         {
-            return elasticClient.DeleteIndexAsync(indexName);
+            return elasticClient.Indices.DeleteAsync(indexName);
         }
 
         /// <summary>
         ///   Delete Alias. If you want to delete Indexs too set Delete paramater true. 
         /// </summary>
-        public Task<IBulkAliasResponse> DeleteAlias(string aliasName,bool DeleteAllIndexs)
+        public Task<DeleteAliasResponse> DeleteAlias(string aliasName, bool DeleteAllIndexs)
         {
-            var exist = elasticClient.AliasExists(new AliasExistsRequest(aliasName.ToIndices())).Exists;
-            if (!exist) return null;
+            var exist = elasticClient.Indices.AliasExists(aliasName);
+            if (!exist.Exists) return null;
             if (DeleteAllIndexs)
                 foreach (var item in GetAllIndexByAlias(aliasName).Result)
                     DeleteIndex(item);
-            return elasticClient.AliasAsync(a => a.Remove(t => t.Alias(aliasName).Index("*")));
+            return elasticClient.Indices.DeleteAliasAsync((Indices)"*", aliasName);
         }
 
 
@@ -169,7 +169,7 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         /// <summary>
         ///     Get Alias Definition using Index Name
         /// </summary>
-        public async Task<IEnumerable<AliasDefinition>> GetAliasByIndex(string indexName)
+        public async Task<IReadOnlyDictionary<string,AliasDefinition>> GetAliasByIndex(string indexName)
         {
             var result = elasticClient.GetAliasesPointingToIndex(indexName);
             return result;
@@ -188,7 +188,7 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         /// <summary>
         /// Move Documents to New Index 
         /// </summary>
-        public Task<IReindexOnServerResponse> ReIndex(string sourceIndexName, string destinationIndexName)
+        public Task<ReindexOnServerResponse> ReIndex(string sourceIndexName, string destinationIndexName)
         {
             var reindexResponse = elasticClient.ReindexOnServerAsync(r => r
                          .Source(s => s
@@ -245,20 +245,10 @@ namespace ElasticSearchLibrary.ElasticSearchCore
             .From(errorFilter.Page)
             .Size(errorFilter.RowCount)
             .Sort(ss => ss.Descending(p => p.DateCreated))
-            .Query(q => q
-                .Bool(b => b
-                    .Must(
-                        q => q.Term(t => t.UserId, errorFilter.UserId),
-                        q => q.Term(t => t.Path.ToFilter(), errorFilter.Path.ToFilter()),
-                        q => q.Term(t => t.Method.ToFilter(), errorFilter.Method.ToFilter()),
-                        q => q.Term(t => t.StatusCode, errorFilter.StatusCode),
-                         q => q.DateRange(r => r
-                        .Field(f => f.DateCreated)
-                        .GreaterThanOrEquals(DateMath.Anchored(((DateTime)errorFilter.BeginDate).AddDays(-1)))
-                        .LessThanOrEquals(DateMath.Anchored(((DateTime)errorFilter.EndDate).AddDays(1)))
-                        ))
-                     )
-                  ).Take(1)
+            .Query(q => q.Terms(
+                t=>t.Field(ff=>ff.StatusCode).Terms<int>(errorFilter.StatusCode)
+                
+                ))
             .Index(IndexType.error_log.ToString())
             );
             return response.Documents;
@@ -291,7 +281,7 @@ namespace ElasticSearchLibrary.ElasticSearchCore
             return response.Documents;
         }
 
-        public async Task<IReadOnlyCollection<T>> SearchIndexLogs<T>(GlobalSearchModel globalFilter) where T: class
+        public async Task<IReadOnlyCollection<T>> SearchIndexLogs<T>(GlobalSearchModel globalFilter) where T : class
         {
             var response = elasticClient.Search<T>(s => s
             .From(globalFilter.Page)
@@ -310,7 +300,7 @@ namespace ElasticSearchLibrary.ElasticSearchCore
     }
 
 
-   
+
 
 
 }

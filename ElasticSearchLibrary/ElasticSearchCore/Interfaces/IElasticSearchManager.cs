@@ -15,15 +15,15 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         /// <summary>
         ///     Create New Index merged with alias
         /// </summary>
-        public Task<IBulkAliasResponse> CreateIndexAsync(string aliasName, string indexName);
+        public Task<BulkAliasResponse> CreateIndexAsync(string aliasName, string indexName);
         /// <summary>
         ///     Create New Index and Alias
         /// </summary>
-        Task<IBulkAliasResponse> CreateIndexAndAliasAsync(string indexName);
+        Task<BulkAliasResponse> CreateIndexAndAliasAsync(string indexName);
         /// <summary>
         ///     Create Alias and optional merge Index 
         /// </summary>
-        Task<IBulkAliasResponse> CreateAliasAsync(string aliasName, string? IndexName);
+        Task<BulkAliasResponse> CreateAliasAsync(string aliasName, string? IndexName);
 
 
 
@@ -31,22 +31,22 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         /// <summary>
         ///     Log Insert Function with String IndexType
         /// </summary>
-        public Task<IIndexResponse> CheckExistsAndInsert<T>(IndexType IndexType, T logs) where T : class;
+        public Task<IndexResponse> CheckExistsAndInsert<T>(IndexType IndexType, T logs) where T : class;
         /// <summary>
         ///     Log Insert Function with String Index Name
         /// </summary>
-        public Task<IIndexResponse> CheckExistsAndInsert<T>(string IndexName, T logs) where T : class;
+        public Task<IndexResponse> CheckExistsAndInsert<T>(string IndexName, T logs) where T : class;
 
 
 
         /// <summary>
         ///     Clear Logs  with IndexType
         /// </summary>
-        public Task<IDeleteByQueryResponse> ClearIndexData(IndexType IndexType);
+        public Task<DeleteByQueryResponse> ClearIndexData(IndexType IndexType);
         /// <summary>
         ///     Clear Logs  with string
         /// </summary>
-        public Task<IDeleteByQueryResponse> ClearIndexData(string indexName);
+        public Task<DeleteByQueryResponse> ClearIndexData(string indexName);
 
 
 
@@ -55,11 +55,11 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         /// <summary>
         /// Delete Index
         /// </summary>
-        public Task<IDeleteIndexResponse> DeleteIndex(string indexName);
+        public Task<DeleteIndexResponse> DeleteIndex(string indexName);
         /// <summary>
         /// Delete Alias. If you want to delete Indexs too set Delete paramater true. 
         /// </summary>
-        public Task<IBulkAliasResponse> DeleteAlias(string aliasName,bool DeleteAllIndexs);
+        public Task<DeleteAliasResponse> DeleteAlias(string aliasName,bool DeleteAllIndexs);
 
 
 
@@ -67,18 +67,18 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         /// <summary>
         ///     Get Alias Name using IndexName
         /// </summary>
-        Task<IEnumerable<AliasDefinition>> GetAliasByIndex(string indexName);
+        Task<IReadOnlyDictionary<string, AliasDefinition>> GetAliasByIndex(string indexName);
 
         /// <summary>
         ///     Get All Index using Alias Name
         /// </summary>
-        Task<IEnumerable<string>> GetAllIndexByAlias(string aliasName);
+        public Task<IEnumerable<string>> GetAllIndexByAlias(string aliasName);
 
 
         /// <summary>
         /// Delete Index And Create Again
         /// </summary>
-        public Task<IReindexOnServerResponse> ReIndex(string sourceIndexName, string destinationIndexName);
+        public Task<ReindexOnServerResponse> ReIndex(string sourceIndexName, string destinationIndexName);
 
 
         public Task<IReadOnlyCollection<ActivityLog>> SearchActivityLogs(ActivitySearchModel activityFilter);
