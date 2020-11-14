@@ -245,10 +245,20 @@ namespace ElasticSearchLibrary.ElasticSearchCore
             .From(errorFilter.Page)
             .Size(errorFilter.RowCount)
             .Sort(ss => ss.Descending(p => p.DateCreated))
-            .Query(q => q.Terms(
-                t=>t.Field(ff=>ff.StatusCode).Terms<int>(errorFilter.StatusCode)
-                
-                ))
+            .Query(q => q
+                .Bool(b => b
+                    .Must(
+                        q => q.Term(t => t.UserId, errorFilter.UserId),
+                        q => q.Term(t => t.Path.ToFilter(), errorFilter.Path.ToFilter()),
+                        q => q.Term(t => t.Method.ToFilter(), errorFilter.Method.ToFilter()),
+                        q => q.Term(t => t.StatusCode, errorFilter.StatusCode),
+                         q => q.DateRange(r => r
+                        .Field(f => f.DateCreated)
+                        .GreaterThanOrEquals(DateMath.Anchored(((DateTime)errorFilter.BeginDate).AddDays(-1)))
+                        .LessThanOrEquals(DateMath.Anchored(((DateTime)errorFilter.EndDate).AddDays(1)))
+                        ))
+                     )
+                  )
             .Index(IndexType.error_log.ToString())
             );
             return response.Documents;

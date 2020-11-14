@@ -7,11 +7,11 @@ namespace ElasticSearchLibrary.Loggers.SearchModels
 {
     public class EntitySearchModel : BaseFilter
     {
-        public string EntityName { get; set; }
-        public int UserId { get; set; }
-        public int PrimaryKeyValue { get; set; }
+        public string? EntityName { get; set; }
+        public int? UserId { get; set; }
+        public int? PrimaryKeyValue { get; set; }
 
-        public ChangeState State { get; set; }
+        public ChangeState? State { get; set; } = ChangeState.Updated;
 
     }
 }
