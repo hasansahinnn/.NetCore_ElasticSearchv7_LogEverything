@@ -208,6 +208,15 @@ namespace ElasticSearchLibrary.Loggers
             return Ok(result);
         }
 
+        /// <summary>
+        ///     Search Your Custom Logs
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> SearchCustomLogs(GlobalSearchModel customSearch)
+        {
+            var result = await elasticSearchService.SearchIndexLogs<dynamic>(customSearch);
+            return Ok(result);
+        }
 
 
         #endregion
