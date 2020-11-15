@@ -1,5 +1,6 @@
 ![Screenshot](Screenshots/application.png)
 
+
 # .Net Core - Elastic Search Log Everything
 
 [![Build Status](http://img.shields.io/travis/badges/badgerbadgerbadger.svg?style=flat-square)](https://github.com/hasansahinnn/.NetCore_ElasticSearchv7_LogEverything/)  [![Coverage Status](http://img.shields.io/coveralls/badges/badgerbadgerbadger.svg?style=flat-square)](https://github.com/hasansahinnn/.NetCore_ElasticSearchv7_LogEverything/)  [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org) [![Issiue](https://img.shields.io/github/issues/hasansahinnn/.NetCore_ElasticSearchv7_LogEverything)](https://github.com/hasansahinnn/.NetCore_ElasticSearchv7_LogEverything/issues)
@@ -33,6 +34,12 @@ Activity Log                 |   Entitiy Changes Log
 Error Log                  |  Elastic Search Management
 :---------------------------:|:---------------------------:
 ![Screenshot](Screenshots/Error_Log.gif)|  ![Screenshot](Screenshots/Elastic_Management.gif)
+
+---
+
+```
+  Install-Package ElasticSearchLibrary
+```
 
 ---
 
