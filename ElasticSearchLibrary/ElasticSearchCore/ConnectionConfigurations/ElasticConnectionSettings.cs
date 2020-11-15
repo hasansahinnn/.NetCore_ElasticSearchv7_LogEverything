@@ -13,7 +13,7 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         {
             Configuration = configuration;
         }
-        public string ElasticSearchHost { get { return Configuration.GetSection("ElasticConnectionSettings:ConnectionString:HostUrls").Value; } } // Get HostUrl
+        public string ElasticSearchHost { get { return Configuration.GetSection("ElasticConnectionSettings:ConnectionString:HostUrls").Value ?? "http://localhost:9200/"; } } // Get HostUrl
         public string UserName { get { return Configuration.GetSection("ElasticConnectionSettings:ConnectionString:UserName").Value; } } // Get UserName
         public string PassWord { get { return Configuration.GetSection("ElasticConnectionSettings:ConnectionString:Password").Value; } } // Get PassWord
 

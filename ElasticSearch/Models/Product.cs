@@ -1,4 +1,5 @@
 ﻿using ElasticSearchLibrary.Loggers.LogAttributes.EntityAttributes;
+using ElasticSearchLibrary.Loggers.LogModels.Abstract;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 namespace ElasticSearch.Models
 {
     //[LogModel]  // Log All Props
-    public class Product
+    public class Product :IElasticModel
     {
         [Key]
         [DisplayName("Record Id")] // For clarity when displaying ChangeLog records
