@@ -36,15 +36,25 @@ Error Log                  |  Elastic Search Management
 
 ---
 
-## Service Settings (Startup.cs)
-
+## Service Settings 
+ <b>Startup.cs</b>
 ```net
  public void ConfigureServices(IServiceCollection services)
  {
    services.AddElasticServices();
  }
 ```
+<b>appsettings.json</b>
 
+```json
+  "ElasticConnectionSettings": {
+    "ConnectionString": {
+      "HostUrls": "http://localhost:9200/",
+      "UserName": "",
+      "Password": ""
+    }
+  }
+```
 
 ---
 
