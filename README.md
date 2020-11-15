@@ -111,7 +111,19 @@ Entity Model Class
  }
 
 ```
+---
 
+
+## Elastic Management Controller
+
+```net
+
+  public class ElasticController : ElasticSearchController
+  {
+      public ElasticController(IElasticSearchManager _elasticSearchService) : base(_elasticSearchService) { }
+  }
+
+```
 
 ---
 
