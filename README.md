@@ -45,15 +45,21 @@ Error Log                  |  Elastic Search Management
  }
 ```
 
+
 ---
+
+
 
 ## EndPoint Activity Logging (Controller/Action)
 
 
- [ActivityFilter(LogAllEndPoints: false)]  // -> Add Filter To Your Controller.
- [LogEndpoint] // if LogAllEndPoints:false -> Use [LogAttribute] for logging specific endpoints.
- [NoLogEndpoint] // if LogAllEndPoints:true -> Use [NoLogAttribute] for remove logging to specific endpoints.
+<b> [ActivityFilter(LogAllEndPoints: false)] </b> // -> Add Filter To Your Controller <br>
+<b> [LogEndpoint]</b> // if LogAllEndPoints:false -> Use <b>[LogEndpoint]</b> for logging specific endpoints. <br>
+<b> [NoLogEndpoint] </b> // if LogAllEndPoints:true -> Use <b>[NoLogEndpoint]</b> for remove logging to specific endpoints.
+ 
+ 
 ---
+
 
 ## Database Entities Logging 
 
@@ -83,6 +89,7 @@ Entity Model Class
 
 
 ---
+
 
 ## Error Logging (Startup.cs)
 
