@@ -75,6 +75,12 @@ Error Log                  |  Elastic Search Management
 
 Entity Context Class 
 ```net
+
+ private IDatabaseLogger dbLogger;
+ public ProductContext(DbContextOptions options, IDatabaseLogger _dbLogger) : base(options) 
+ {
+      this.dbLogger = _dbLogger; 
+ }
  public override int SaveChanges() 
  {
       dbLogger.LogChanges(ChangeTracker);
