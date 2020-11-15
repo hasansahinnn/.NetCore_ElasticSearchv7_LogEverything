@@ -146,3 +146,7 @@ Entity Model Class
 
 - **[MIT license](http://opensource.org/licenses/mit-license.php)**
 - Copyright 2020 © 
+
+---
+
+Medium TR : https://hasansahinn.medium.com/asp-net-core-3-elastic-search-log-everything-3d567bed2c00
