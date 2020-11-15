@@ -89,7 +89,7 @@ Entity Model Class
  {
      [DisplayName("Record Id")] // For clarity when displaying Entity Log records
      public int ID { get; set; }
-     [LogProp]  // -> Log Specific Props
+     [LogProp]  // -> Log Specific Props (Remove LogModel Attribute)
      public string Name { get; set; }
      [DisplayName("Seri No")]
      [LogProp]
