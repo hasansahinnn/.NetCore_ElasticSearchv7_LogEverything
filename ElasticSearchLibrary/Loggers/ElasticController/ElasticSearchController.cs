@@ -29,7 +29,7 @@ namespace ElasticSearchLibrary.Loggers
         [HttpGet]
         public async Task<IActionResult> ClearActivityLogs()
         {
-            var result = await elasticSearchService.ClearIndexData(IndexType.activity_log); // Use lowerCase Index Name
+            var result = await elasticSearchService.ClearIndexData(IndexType.activity_log);
             return Ok(result);
         }
         /// <summary>
@@ -39,7 +39,7 @@ namespace ElasticSearchLibrary.Loggers
         [HttpGet]
         public async Task<IActionResult> ClearErrorLogs()
         {
-            var result = await elasticSearchService.ClearIndexData(IndexType.error_log); // Use lowerCase Index Name
+            var result = await elasticSearchService.ClearIndexData(IndexType.error_log);
             return Ok(result);
         }
         /// <summary>
@@ -49,7 +49,7 @@ namespace ElasticSearchLibrary.Loggers
         [HttpGet]
         public async Task<IActionResult> ClearEntityChangesLogs()
         {
-            var result = await elasticSearchService.ClearIndexData(IndexType.entity_log); // Use lowerCase Index Name
+            var result = await elasticSearchService.ClearIndexData(IndexType.entity_log);
             return Ok(result);
         }
 
@@ -59,7 +59,7 @@ namespace ElasticSearchLibrary.Loggers
         [HttpPost]
         public async Task<IActionResult> DeleteIndexDocuments(string indexName)
         {
-            var result = await elasticSearchService.ClearIndexData(indexName); // Use lowerCase Index Name
+            var result = await elasticSearchService.ClearIndexData(indexName); 
             return Ok(result);
         }
 

@@ -39,11 +39,10 @@ namespace ElasticSearchLibrary.Loggers.DBEntityLogger
                 foreach (IProperty prop in change.OriginalValues.Properties) // Updated Props
                 {
                     bool LogPropState = prop.PropertyInfo.CheckAttributeExist<LogPropAttribute>(); // Check LogProp Attribute
-                    if (!LogModelState && !LogPropState) continue;
+                    if (!LogModelState && !LogPropState) continue; // If same value go next prop
 
-                    var originalValue = change.OriginalValues[prop.Name].ToString();
-                    var currentValue = change.CurrentValues[prop.Name]?.ToString();
-                    string a = prop.GetDisplayName();
+                    var originalValue = change.OriginalValues[prop.Name].ToString(); // Old Value
+                    var currentValue = change.CurrentValues[prop.Name]?.ToString(); // New Value
                     if (originalValue != currentValue)
                     {
                         log.ChangedValues.Add(new ChangedValues(prop.GetDisplayName(), originalValue, currentValue));
@@ -59,7 +58,7 @@ namespace ElasticSearchLibrary.Loggers.DBEntityLogger
                 if (!LogModelState) continue;
                 var PrimaryKey = deleted.OriginalValues.Properties.FirstOrDefault(prop => prop.IsPrimaryKey() == true).Name; //Table Primary Key
                 EntityLog log = new EntityLog(userId, entityName, deleted.OriginalValues[PrimaryKey].ToInt(), now, ChangeState.Deleted);
-                elasticSearchService.CheckExistsAndInsert<EntityLog>(IndexType.entity_log, log); // Send to Elastic
+                elasticSearchService.CheckExistsAndInsert<EntityLog>(IndexType.entity_log, log); // Log to Elastic
             }
         }
     }

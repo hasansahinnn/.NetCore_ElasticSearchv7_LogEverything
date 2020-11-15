@@ -22,7 +22,7 @@ namespace ElasticSearch.Models
         {
             try
             {
-                dbLogger.LogChanges(ChangeTracker);
+                dbLogger.LogChanges(ChangeTracker);  // For DB Entity Logging
                 return base.SaveChanges();
             }
             catch (Exception ex)

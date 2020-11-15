@@ -32,7 +32,7 @@ namespace ElasticSearch.Controllers
         /// <summary>
         ///     Get Jwt Token for User ID:5
         /// </summary>
-        [LogEndpoint] // if LogAllEndPoints:false -> Use [LogAttribute] for log specific endpoints.
+        [LogEndpoint] // if LogAllEndPoints:false -> Use [LogEndpoint] for log specific endpoints.
         [AllowAnonymous]
         [HttpGet]
         [SwaggerOperation(Tags = new[] { "Security" }, Summary = "Get Token for User Id 5")]
@@ -43,7 +43,7 @@ namespace ElasticSearch.Controllers
         /// <summary>
         ///     Get Products
         /// </summary>
-        [NoLogEndpoint] // if LogAllEndPoints:true -> Use [NotLogAttribute] for remove logging to specific endpoints.
+        [NoLogEndpoint] // if LogAllEndPoints:true -> Use [NoLogEndpoint] for remove logging to specific endpoints.
         [HttpGet]
         [SwaggerOperation(Tags = new[] { "CRUD" }, Summary = "Get All Products. (Authorized)")]
         public IActionResult Get()
@@ -93,7 +93,7 @@ namespace ElasticSearch.Controllers
         public IActionResult SpecialLog()
         {
             MyTestModel testData = new MyTestModel(1, "Test");
-            elasticSearchService.CheckExistsAndInsert<MyTestModel>("test_model", testData); // Use lowerCase Index Name
+            elasticSearchService.CheckExistsAndInsert<MyTestModel>("test_model", testData);
             return Ok(true);
         }
 

@@ -49,7 +49,7 @@ namespace ElasticSearch
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddDbContext<ProductContext>(opt => opt.UseInMemoryDatabase("ProductContext")); // Memory Db
 
-            // ElasticSearch
+            // ElasticSearch Services
             services.AddElasticServices();
 
 
@@ -146,7 +146,7 @@ namespace ElasticSearch
                 c.RoutePrefix = "";
             });
 
-            // Elastic Error Logs
+            // Enable Elastic Error Logs
             app.AddElasticErrorHandler();
 
 

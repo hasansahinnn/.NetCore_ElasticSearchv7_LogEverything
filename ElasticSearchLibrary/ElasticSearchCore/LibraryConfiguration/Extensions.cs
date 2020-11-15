@@ -49,8 +49,8 @@ namespace ElasticSearchLibrary.ElasticSearchCore.LibraryConfiguration
             return displayNameAttribute.ConstructorArguments[0].Value.ToString() ?? prop.Name;
         }
 
-        public static bool CheckAttributeExist<T>(this Type type) => type.GetCustomAttributes(false).FirstOrDefault(x => x.GetType() == typeof(T)) != null;
-        public static bool CheckAttributeExist<T>(this PropertyInfo type) => type.GetCustomAttributes(false).FirstOrDefault(x => x.GetType() == typeof(T)) != null;
+        public static bool CheckAttributeExist<T>(this Type type) => type.GetCustomAttributes(false).FirstOrDefault(x => x.GetType() == typeof(T)) != null; // Attribute Check
+        public static bool CheckAttributeExist<T>(this PropertyInfo type) => type.GetCustomAttributes(false).FirstOrDefault(x => x.GetType() == typeof(T)) != null; // Attribute Check
 
         public static string ToFilter(this string text) => text?.ToLower()?.Trim();
         public static Indices ToIndices(this string text) => (Indices)text;

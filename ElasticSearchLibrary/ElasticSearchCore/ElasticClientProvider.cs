@@ -20,10 +20,10 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         public ElasticClient CreateClient()
         {
             var connectionSettings = new ConnectionSettings(new Uri(elasticSearchConfigration.ElasticSearchHost))
-                .DisablePing()
-                .DisableDirectStreaming(true)
-                .SniffOnStartup(false)
-                .SniffOnConnectionFault(false);
+                .DisablePing() 
+                .DisableDirectStreaming(true) // For Elastic Error Detail. May cause performance loss.
+                .SniffOnStartup(false) // It prevents the pool from being controlled at the moment of the initial connection. The goal is performance.
+                .SniffOnConnectionFault(false); // If the connection pool supports refeeding, it prevents the connection pool from being rechecked when a search fails. The goal is again performance.
             if (!string.IsNullOrEmpty(elasticSearchConfigration.UserName) && !string.IsNullOrEmpty(elasticSearchConfigration.PassWord))
                 connectionSettings.BasicAuthentication(elasticSearchConfigration.UserName, elasticSearchConfigration.PassWord);
 

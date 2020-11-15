@@ -26,6 +26,9 @@ namespace ElasticSearchLibrary.ElasticSearchCore
 
         #region Create Process
 
+        /// <summary>
+        ///     Create new Index connected to specific Alias
+        /// </summary>
         public async Task<BulkAliasResponse> CreateIndexAsync(string aliasName, string indexName)
         {
             var exis = await elasticClient.Indices.ExistsAsync(indexName);
@@ -53,6 +56,9 @@ namespace ElasticSearchLibrary.ElasticSearchCore
             throw new Exception($"Create Index {indexName} failed : :" + result.ServerError.Error.Reason);
         }
 
+        /// <summary>
+        ///     Create new Index and Alias using same name
+        /// </summary>
         public async Task<BulkAliasResponse> CreateIndexAndAliasAsync(string indexName)
         {
             var exis = await elasticClient.Indices.ExistsAsync(indexName);
@@ -80,6 +86,9 @@ namespace ElasticSearchLibrary.ElasticSearchCore
             throw new Exception($"Create Index {indexName} failed : :" + result.ServerError.Error.Reason);
         }
 
+        /// <summary>
+        ///     Create new Alias. IndexName Optional. 
+        /// </summary>
         public Task<BulkAliasResponse> CreateAliasAsync(string aliasName, string? IndexName)
         {
             return elasticClient.Indices.BulkAliasAsync(b=>b.Add(new AliasAddAction() { Add=new AliasAddOperation() {Alias=aliasName,Index=IndexName } }));
@@ -103,11 +112,11 @@ namespace ElasticSearchLibrary.ElasticSearchCore
         /// </summary>
         public async Task<IndexResponse> CheckExistsAndInsert<T>(string indexName, T logs) where T : class
         {
-            if (!elasticClient.Indices.Exists(indexName).Exists)
+            if (!elasticClient.Indices.Exists(indexName).Exists) // Check Index Exist
             {
-                await CreateIndexAndAliasAsync(indexName);
+                await CreateIndexAndAliasAsync(indexName); // Create New Index 
             }
-            return await elasticClient.IndexAsync<T>(logs, idx => idx.Index(indexName));
+            return await elasticClient.IndexAsync<T>(logs, idx => idx.Index(indexName)); // Insert Data
         }
 
         #endregion

@@ -34,9 +34,9 @@ namespace ElasticSearchLibrary.ElasticSearchCore.LibraryConfiguration
                 IElasticSearchManager _elasticSearchService;
                 using (var scope = app.ApplicationServices.CreateScope())
                 {
-                    _elasticSearchService = scope.ServiceProvider.GetRequiredService<IElasticSearchManager>();
+                    _elasticSearchService = scope.ServiceProvider.GetRequiredService<IElasticSearchManager>(); // Get ElasticSearchManager Service Instance
                 }
-                var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+                var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>(); // Catches Exception Detail
                 ErrorLog error = new ErrorLog
                 {
                     UserId = context.GetAuthUser(),

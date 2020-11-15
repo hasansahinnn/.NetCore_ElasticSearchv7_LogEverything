@@ -13,7 +13,7 @@ namespace ElasticSearch.Controllers
 {
     [Route("api/[controller]/[action]")]
     [SwaggerTag("ElasticSearch Manager")]
-    public class ElasticController : ElasticSearchController
+    public class ElasticController : ElasticSearchController  // Get Management Controller
     {
         public ElasticController(IElasticSearchManager _elasticSearchService) : base(_elasticSearchService) { }
     }

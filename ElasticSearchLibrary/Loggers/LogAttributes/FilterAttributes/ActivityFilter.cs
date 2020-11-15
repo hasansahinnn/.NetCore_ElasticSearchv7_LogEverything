@@ -66,11 +66,11 @@ namespace ElasticSearchLibrary.Loggers.LogAttributes.FilterAttributes
             }
         }
 
-        public bool HasLogAttribute(FilterContext context)
+        public bool HasLogAttribute(FilterContext context)  //Check LogEndpointAttribute for action
         {
             return ((ControllerActionDescriptor)context.ActionDescriptor).MethodInfo.CustomAttributes.Any(filterDescriptors => filterDescriptors.AttributeType == typeof(LogEndpointAttribute));
         }
-        public bool HasNoLogAttribute(FilterContext context)
+        public bool HasNoLogAttribute(FilterContext context)  //Check NoLogEndpointAttribute for action
         {
             return ((ControllerActionDescriptor)context.ActionDescriptor).MethodInfo.CustomAttributes.Any(filterDescriptors => filterDescriptors.AttributeType == typeof(NoLogEndpointAttribute));
         }
